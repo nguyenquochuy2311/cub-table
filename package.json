@@ -6,7 +6,7 @@
 	"scripts": {
 		"lint": "tsc --noEmit && eslint src --ext .js,.ts",
 		"build": "bun lint && bun build.mjs",
-		"serve": "npm run build && node dist/server.js",
+		"serve": "bun run build && bun dist/server.js",
 		"start": "bun --watch src/server.ts"
 	},
 	"lint-staged": {

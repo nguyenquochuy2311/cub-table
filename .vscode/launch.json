@@ -1,0 +1,14 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "bun",
+			"request": "launch",
+			"name": "Start Cubable Debugger",
+			"program": "index.ts",
+			"runtime": "bun",
+			"watchMode": true,
+		},
+	]
+}
+	

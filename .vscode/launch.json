@@ -5,7 +5,7 @@
 			"type": "bun",
 			"request": "launch",
 			"name": "Start Cubable Debugger",
-			"program": "index.ts",
+			"program": "src/servvrrrr.ts",
 			"runtime": "bun",
 			"watchMode": true,
 		},

@@ -24,7 +24,7 @@
 		"decimal.js": "^10.4.3",
 		"dotenv": "^16.0.1",
 		"envalid": "^8.0.0",
-		"isolated-vm": "^5.0.0",
+		"isolated-vm": "^5.0.2",
 		"lodash": "^4.17.21",
 		"moleculer": "^0.14.32",
 		"moleculer-web": "^0.10.7",

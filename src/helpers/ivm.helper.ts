@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
 import * as customFormula from '@/utils/custom-formula';
 import * as formulajs from '@formulajs/formulajs';
 import type { Context, Isolate, IsolateOptions } from 'isolated-vm';

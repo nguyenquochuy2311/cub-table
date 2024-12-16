@@ -3,7 +3,7 @@ import type { Job, JobsOptions, QueueOptions, WorkerOptions } from 'bullmq';
 import { Queue, Worker } from 'bullmq';
 import { merge } from 'lodash';
 import { MoleculerHelper } from './moleculer.helper';
-import { Storage } from './storage.helper';
+import { StorageHelper } from './storage.helper';
 
 export class QueueHelper {
 	private static QUEUES: Record<string, Queue> = {};
@@ -55,7 +55,7 @@ export class QueueHelper {
 
 		const mergedOptions = merge({}, queueOptions, opts);
 
-		QueueHelper.QUEUES[queueName] = new Queue(queueName, { ...mergedOptions, connection: Storage.getConfig() });
+		QueueHelper.QUEUES[queueName] = new Queue(queueName, { ...mergedOptions, connection: StorageHelper.getConfig() });
 		QueueHelper.QUEUES[queueName].setGlobalConcurrency(1);
 	}
 
@@ -70,7 +70,7 @@ export class QueueHelper {
 			removeOnFail: { count: 0 },
 			removeOnComplete: { count: 0 },
 			...(opts || {}),
-			connection: Storage.getConfig(),
+			connection: StorageHelper.getConfig(),
 		});
 
 		worker.on('progress', (job: Job) => MoleculerHelper.getLogger().info(`[Worker ${job.name}] progress...`));

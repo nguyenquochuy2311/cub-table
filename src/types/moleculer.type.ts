@@ -1,6 +1,6 @@
-import type { LanguageEnum } from '@/interfaces/language.interface';
-import type { ULID } from 'ulidx';
+import type { LanguageEnum } from '@/types/language.type';
 import type { Context } from 'moleculer';
+import type { ULID } from 'ulidx';
 
 export type IMeta = {
 	workspaceID: string;
@@ -26,7 +26,7 @@ export type ILocals = {
 	teamIDs: ULID[];
 	userID: ULID;
 	lang?: LanguageEnum;
-}
+};
 
 export type IContext<T = undefined> = Context<T> & {
 	meta: IMeta & IMetaCompensate;
@@ -38,4 +38,3 @@ export type IContextEvent<T = undefined> = Context<T> & {
 	meta: ILocals;
 	params: any;
 };
-

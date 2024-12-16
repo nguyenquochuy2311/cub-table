@@ -7,18 +7,13 @@ import { MoleculerHelper } from './moleculer.helper';
 
 export type RedisMultiType = ReturnType<RedisClientType['multi']>;
 
-export class Storage {
+export class StorageHelper {
 	private static redisClient: RedisClientType;
 
 	/**
-	 * Description placeholder
-	 * @date 3/5/2024 - 4:06:25 PM
-	 *
-	 * @public
-	 * @static
 	 * @returns {any}
 	 */
-	public static getConfig() {
+	static getConfig() {
 		return {
 			host: CONFIG.REDIS_HOST,
 			port: Number(CONFIG.REDIS_PORT),
@@ -30,19 +25,19 @@ export class Storage {
 	 * @return {void}
 	 */
 	public static async init(): Promise<void> {
-		Storage.redisClient = createClient({
-			socket: Storage.getConfig(),
+		StorageHelper.redisClient = createClient({
+			socket: StorageHelper.getConfig(),
 		});
 
-		Storage.redisClient.on('ready', () => {
+		StorageHelper.redisClient.on('ready', () => {
 			MoleculerHelper.getLogger().info('Redis connected');
 		});
 
-		Storage.redisClient.on('error', err => {
+		StorageHelper.redisClient.on('error', err => {
 			MoleculerHelper.getLogger().info('Redis error', err);
 		});
 
-		await Storage.redisClient?.connect();
+		await StorageHelper.redisClient?.connect();
 	}
 
 	/**
@@ -50,11 +45,11 @@ export class Storage {
 	 * @return {RedisClientType}
 	 */
 	public static async getStorageClient(): Promise<RedisClientType> {
-		if (!Storage.redisClient) {
-			await Storage.init();
+		if (!StorageHelper.redisClient) {
+			await StorageHelper.init();
 		}
 
-		return Storage.redisClient;
+		return StorageHelper.redisClient;
 	}
 
 	/**
@@ -69,7 +64,7 @@ export class Storage {
 			assign(options, { KEEPTTL: true });
 		}
 
-		const data = (await Storage.getStorageClient()).set(cacheKey, JSON.stringify(cacheValue), options);
+		const data = (await StorageHelper.getStorageClient()).set(cacheKey, JSON.stringify(cacheValue), options);
 
 		return data;
 	}
@@ -82,7 +77,7 @@ export class Storage {
 	 * @returns {Promise<string | null>}
 	 */
 	public static async setCacheExpire(cacheKey: string, seconds: number, mode?: 'NX' | 'XX' | 'GT' | 'LT') {
-		return (await Storage.getStorageClient()).expire(cacheKey, seconds, mode);
+		return (await StorageHelper.getStorageClient()).expire(cacheKey, seconds, mode);
 	}
 
 	/**
@@ -91,7 +86,7 @@ export class Storage {
 	 * @returns {Promise<any | null>}
 	 */
 	public static async getCacheValueByKey(cacheKey: string): Promise<any | null> {
-		const cacheValue = await (await Storage.getStorageClient()).get(cacheKey);
+		const cacheValue = await (await StorageHelper.getStorageClient()).get(cacheKey);
 
 		return cacheValue && JSON.parse(cacheValue);
 	}
@@ -102,7 +97,7 @@ export class Storage {
 	 * @returns {Promise<number>}
 	 */
 	public static async checkCacheByKey(cacheKey: string) {
-		return (await Storage.getStorageClient()).exists(cacheKey);
+		return (await StorageHelper.getStorageClient()).exists(cacheKey);
 	}
 
 	/**
@@ -111,7 +106,7 @@ export class Storage {
 	 * @returns {Promise<void>}
 	 */
 	public static async destroyCacheByKey(cacheKey: string): Promise<number> {
-		return (await Storage.getStorageClient()).del(cacheKey);
+		return (await StorageHelper.getStorageClient()).del(cacheKey);
 	}
 
 	/**
@@ -121,7 +116,7 @@ export class Storage {
 	 * @returns {Promise<number>}
 	 */
 	public static async incrementCacheValue(cacheKey: string, increaseNumber = 0) {
-		return (await Storage.getStorageClient()).incrBy(cacheKey, increaseNumber);
+		return (await StorageHelper.getStorageClient()).incrBy(cacheKey, increaseNumber);
 	}
 
 	/**
@@ -135,7 +130,7 @@ export class Storage {
 			MATCH: pattern,
 		};
 
-		for await (const key of (await Storage.getStorageClient()).scanIterator(options)) {
+		for await (const key of (await StorageHelper.getStorageClient()).scanIterator(options)) {
 			keys.push(key);
 		}
 
@@ -148,7 +143,7 @@ export class Storage {
 	 * @returns {Promise<number>}
 	 */
 	public static async getAllHashField(cacheKey: string): Promise<IObject> {
-		return (await Storage.getStorageClient()).hGetAll(cacheKey);
+		return (await StorageHelper.getStorageClient()).hGetAll(cacheKey);
 	}
 
 	/**
@@ -157,7 +152,7 @@ export class Storage {
 	 * @returns {Promise<number>}
 	 */
 	public static async getAllHashKeys(cacheKey: string) {
-		return (await Storage.getStorageClient()).hKeys(cacheKey);
+		return (await StorageHelper.getStorageClient()).hKeys(cacheKey);
 	}
 
 	/**
@@ -167,7 +162,7 @@ export class Storage {
 	 * @returns {Promise<number>}
 	 */
 	public static async getValueHashField(cacheKey: string, cacheField: string): Promise<any | undefined> {
-		const result = await (await Storage.getStorageClient()).hGet(cacheKey, cacheField);
+		const result = await (await StorageHelper.getStorageClient()).hGet(cacheKey, cacheField);
 
 		return result ? JSON.parse(result) : result;
 	}
@@ -180,7 +175,7 @@ export class Storage {
 	 * @returns {Promise<number>}
 	 */
 	public static async setHashValue(cacheKey: string, cacheField: string, cacheValue: any): Promise<number> {
-		return (await Storage.getStorageClient()).hSet(cacheKey, cacheField, JSON.stringify(cacheValue));
+		return (await StorageHelper.getStorageClient()).hSet(cacheKey, cacheField, JSON.stringify(cacheValue));
 	}
 
 	/**
@@ -190,7 +185,7 @@ export class Storage {
 	 * @returns {Promise<number>}
 	 */
 	public static async checkHashExists(cacheKey: string, cacheField: string): Promise<boolean> {
-		return (await Storage.getStorageClient()).hExists(cacheKey, cacheField);
+		return (await StorageHelper.getStorageClient()).hExists(cacheKey, cacheField);
 	}
 
 	/**
@@ -201,7 +196,7 @@ export class Storage {
 	 * @returns {Promise<number>}
 	 */
 	public static async increaseHashValue(cacheKey: string, cacheField: string, increaseNumber: number): Promise<number> {
-		return (await Storage.getStorageClient()).hIncrBy(cacheKey, cacheField, increaseNumber);
+		return (await StorageHelper.getStorageClient()).hIncrBy(cacheKey, cacheField, increaseNumber);
 	}
 
 	/**
@@ -211,7 +206,7 @@ export class Storage {
 	 * @returns {Promise<number>}
 	 */
 	public static async isHashFieldExist(cacheKey: string, cacheField: string): Promise<boolean> {
-		return (await Storage.getStorageClient()).hExists(cacheKey, cacheField);
+		return (await StorageHelper.getStorageClient()).hExists(cacheKey, cacheField);
 	}
 
 	/**
@@ -221,7 +216,7 @@ export class Storage {
 	 * @returns {Promise<void>}
 	 */
 	public static async delHashField(cacheKey: string, cacheField: string): Promise<number> {
-		return (await Storage.getStorageClient()).hDel(cacheKey, cacheField);
+		return (await StorageHelper.getStorageClient()).hDel(cacheKey, cacheField);
 	}
 
 	/**
@@ -230,7 +225,7 @@ export class Storage {
 	 * @returns {Promise<string[]>}
 	 */
 	public static async getAllHashValue(cacheKey: string): Promise<any[]> {
-		const results = await (await Storage.getStorageClient()).hVals(cacheKey);
+		const results = await (await StorageHelper.getStorageClient()).hVals(cacheKey);
 
 		const parseResult = results?.map(result => JSON.parse(result));
 
@@ -245,7 +240,7 @@ export class Storage {
 	 * @returns {Promise<string | null>}
 	 */
 	public static async increaseLastIndex(cacheKey: string, cacheValue: number): Promise<number> {
-		return (await Storage.getStorageClient()).incrBy(cacheKey, cacheValue);
+		return (await StorageHelper.getStorageClient()).incrBy(cacheKey, cacheValue);
 	}
 
 	/**
@@ -255,6 +250,6 @@ export class Storage {
 	 * @returns {Promise<string | null>}
 	 */
 	public static async resetLastIndex(cacheKey: string, numberReset = '0'): Promise<string | null> {
-		return (await Storage.getStorageClient()).getSet(cacheKey, numberReset);
+		return (await StorageHelper.getStorageClient()).getSet(cacheKey, numberReset);
 	}
 }

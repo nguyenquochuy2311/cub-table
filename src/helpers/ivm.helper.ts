@@ -2,7 +2,7 @@ import * as customFormula from '@/utils/custom-formula';
 import * as formulajs from '@formulajs/formulajs';
 import type { Context, Isolate, IsolateOptions } from 'isolated-vm';
 import ivm from 'isolated-vm';
-import _ from 'lodash';
+import { forEach } from 'lodash';
 
 export type IVM = { context: ivm.Context; global: ivm.Reference<Record<string | number | symbol, any>> };
 
@@ -37,7 +37,7 @@ export class IVMHelper {
 
 		jail.setSync('global', jail.derefInto());
 
-		_.forEach(IVMHelper.context, (fnDeclaration, fnName) => {
+		forEach(IVMHelper.context, (fnDeclaration, fnName) => {
 			if (typeof fnDeclaration !== 'function') {
 				return;
 			}
@@ -57,7 +57,7 @@ export class IVMHelper {
 	static runIsolate(formula: string, ivm: IVM, extraFunction?: string[]): void {
 		const { context, global } = ivm;
 		// Set extra function needed before run
-		_.forEach(extraFunction, fnName => {
+		forEach(extraFunction, fnName => {
 			if (formulajs[fnName] && typeof formulajs[fnName] === 'function') {
 				global.setSync(fnName, formulajs[fnName].bind({ ...IVMHelper.context, ...formulajs }));
 			}

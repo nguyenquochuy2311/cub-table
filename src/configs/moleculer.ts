@@ -1,6 +1,6 @@
 import { CONFIG } from '@/configs';
 import { Middleware } from '@moleculer/channels';
-import {isEmpty} from 'lodash';
+import { isEmpty } from 'lodash';
 import type { BrokerOptions } from 'moleculer';
 import { ZodValidator } from 'moleculer-zod-validator';
 import moment from 'moment-timezone';
@@ -65,7 +65,7 @@ export const MOLECULER_CONFIG: BrokerOptions = {
 			},
 		},
 	},
-  validator: new ZodValidator(),
+	validator: new ZodValidator(),
 	registry: {
 		strategy: 'CpuUsage',
 	},
@@ -114,4 +114,4 @@ export const MOLECULER_CONFIG: BrokerOptions = {
 			},
 		}),
 	],
-});
+};

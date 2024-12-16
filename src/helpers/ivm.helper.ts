@@ -22,7 +22,7 @@ export class IVMHelper {
 	/**
 	 * @returns {Isolate}
 	 */
-	static initVM(): ivm.Isolate {
+	static init(): ivm.Isolate {
 		if (!IVMHelper.vm || IVMHelper.vm.isDisposed) {
 			IVMHelper.vm = new ivm.Isolate(IVMHelper.vmOptions);
 		}
@@ -34,7 +34,7 @@ export class IVMHelper {
 	 * @returns {IVM}
 	 */
 	static createIsolate(): IVM {
-		const isolateContext = IVMHelper.initVM().createContextSync();
+		const isolateContext = IVMHelper.init().createContextSync();
 		const jail = isolateContext.global;
 
 		jail.setSync('global', jail.derefInto());

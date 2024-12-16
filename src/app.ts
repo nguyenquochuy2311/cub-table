@@ -16,7 +16,7 @@ export class App {
 	private static async _initDependencies(): Promise<void> {
 		moment.tz.setDefault(CONFIG.DEFAULT_TIMEZONE_MOMENT);
 
-		IVMHelper.initVM();
+		IVMHelper.init();
 		S3Helper.init();
 
 		await StorageHelper.init();

@@ -3,11 +3,12 @@
 	"version": "1.0.0",
 	"description": "cubable table",
 	"license": "ISC",
+	"type": "module",
 	"scripts": {
 		"lint": "tsc --noEmit && eslint src --ext .js,.ts",
-		"build": "bun lint && bun build.mjs",
-		"serve": "bun run build && NODE_ENV=production bun dist/server.js",
-		"start": "NODE_ENV=development bun --watch src/server.ts"
+		"build": "bun lint && swc src -d dist --strip-leading-paths --source-maps --copy-files",
+		"serve": "npm run build && NODE_ENV=production node dist/server.js",
+		"start": "nodemon --signal SIGINT"
 	},
 	"lint-staged": {
 		"**/*.ts": "tsc-files --noEmit"
@@ -40,6 +41,11 @@
 		"zod": "^3.24.1"
 	},
 	"devDependencies": {
+		"@swc-node/register": "^1.8.0",
+		"@swc/cli": "^0.3.12",
+		"@swc/core": "^1.5.7",
+		"@swc/helpers": "^0.5.3",
+		"@types/node": "^17.0.45",
 		"@anatine/esbuild-decorators": "^0.2.19",
 		"@types/lodash": "^4.17.13",
 		"@typescript-eslint/eslint-plugin": "^8.18.0",
@@ -51,6 +57,11 @@
 		"husky": "^9.1.7",
 		"lint-staged": "^15.2.11",
 		"prettier": "^3.4.2",
-		"typescript": "^5.7.2"
+		"typescript": "^5.7.2",
+		"nodemon": "^3.0.1",
+		"ts-node": "^10.9.1",
+		"tsc-alias": "^1.7.0",
+		"tsc-files": "^1.1.4",
+		"tsconfig-paths": "^4.0.0"
 	}
 }

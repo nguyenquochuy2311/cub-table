@@ -1,26 +1,24 @@
 import { CONFIG } from '@/configs';
 import { QueueHelper } from '@/helpers/queue.helper';
-import type { LanguageEnum } from '@/types/language.type';
-import type { IContext } from '@/types/moleculer.type';
+import { LanguageEnum } from '@/interfaces/language.interface';
+import { IContext } from '@/interfaces/moleculer.interface';
 import { createBullBoard } from '@bull-board/api';
 import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
 import { ExpressAdapter } from '@bull-board/express';
-import { map } from 'lodash';
-import type { ServiceSchema } from 'moleculer';
-import type { IncomingRequest, Route } from 'moleculer-web';
-import ApiGatewayService from 'moleculer-web';
-import type { ULID } from 'ulidx';
+import _ from 'lodash';
+import { ServiceSchema } from 'moleculer';
+import ApiGatewayService, { IncomingRequest, Route } from 'moleculer-web';
+import { ULID } from 'ulidx';
 
 export const makeServerAdapter = () => {
 	const serverAdapter = new ExpressAdapter();
 
 	createBullBoard({
-		queues: map((QueueHelper as any).QUEUES, queue => new BullMQAdapter(queue)),
+		queues: _.map(QueueHelper.QUEUES, queue => new BullMQAdapter(queue)),
 		serverAdapter,
 	});
 
 	serverAdapter.setBasePath('/queues');
-
 	return serverAdapter;
 };
 
@@ -49,23 +47,14 @@ export const ApiGatewayController: ServiceSchema = {
 
 		routes: [
 			{
-				autoAliases: CONFIG.isDev ? true : false,
-
-				bodyParsers: {
-					json: {
-						limit: '50mb',
-					},
-					urlencoded: { extended: false },
-				},
+				autoAliases: true,
 
 				onBeforeCall(ctx: IContext, route: Route, req: IncomingRequest): void {
-					if (CONFIG.isDev) {
-						const { workspaceid, userid, lang } = req.headers;
+					const { workspaceid, userid, lang } = req.headers;
 
-						ctx.meta.workspaceID = workspaceid as string;
-						ctx.meta.userID = userid as ULID;
-						ctx.meta.lang = lang as LanguageEnum;
-					}
+					ctx.meta.workspaceID = workspaceid as string;
+					ctx.meta.userID = userid as ULID;
+					ctx.meta.lang = lang as LanguageEnum;
 				},
 			},
 		],

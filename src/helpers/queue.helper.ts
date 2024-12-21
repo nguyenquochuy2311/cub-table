@@ -1,50 +1,28 @@
-import type { IObject } from '@/types/_base.type';
-import type { Job, JobsOptions, QueueOptions, WorkerOptions } from 'bullmq';
-import { Queue, Worker } from 'bullmq';
-import { merge } from 'lodash';
-import { MoleculerHelper } from './moleculer.helper';
+import { IObject } from '@/types/_base.type';
+import { Job, JobsOptions, Queue, QueueOptions, Worker, WorkerOptions } from 'bullmq';
+import _ from 'lodash';
 import { Storage } from './storage.helper';
 
 export class QueueHelper {
-	private static QUEUES: Record<string, Queue> = {};
-	private static WORKERS: Record<string, Worker> = {};
+	static QUEUES: Record<string, Queue> = {};
+	static WORKERS: Record<string, Worker> = {};
 
 	/**
-	 * @param {string} queueName
-	 * @param {*} jobConfig
-	 * @param {*} workerConfig
-	 * @returns {void}
-	 */
-	static setupWorker(
-		queueName: string,
-		jobConfig: {
-			jobName: string;
-			jobData: IObject;
-			jobOpts: JobsOptions;
-		},
-		workerConfig: {
-			handler: any;
-			workerOpts: WorkerOptions;
-		},
-	): void {
-		if (!QueueHelper.QUEUES[queueName]) QueueHelper._addQueue(queueName);
-		if (!QueueHelper.WORKERS[queueName]) QueueHelper._addWorker(queueName, workerConfig.handler, workerConfig.workerOpts);
-
-		QueueHelper.QUEUES[queueName].add(jobConfig.jobName, jobConfig.jobData, {
-			removeOnComplete: true,
-			removeOnFail: true,
-			...(jobConfig.jobOpts || {}),
-		});
-	}
-
-	/**
-	 * @param {string} queueName
+	 * Description placeholder
+	 * @date 3/5/2024 - 4:08:45 PM
+	 *
+	 * @param {string} name
 	 * @param {QueueOptions} [opts={}]
 	 * @returns {*}
 	 */
-	private static _addQueue(queueName: string, opts?: Partial<QueueOptions>): void {
+	static addQueue(name: string, opts?: Partial<QueueOptions>): Queue {
 		const queueOptions = {
 			defaultJobOptions: {
+				attempts: 3,
+				backoff: {
+					type: 'exponential',
+					delay: 1000,
+				},
 				removeOnComplete: true,
 				removeOnFail: true,
 			},
@@ -53,31 +31,73 @@ export class QueueHelper {
 			},
 		};
 
-		const mergedOptions = merge({}, queueOptions, opts);
+		const mergedOptions = _.merge({}, queueOptions, opts);
 
-		QueueHelper.QUEUES[queueName] = new Queue(queueName, { ...mergedOptions, connection: Storage.getConfig() });
-		QueueHelper.QUEUES[queueName].setGlobalConcurrency(1);
+		QueueHelper.QUEUES[name] = new Queue(name, { ...mergedOptions, connection: Storage.getConfig() });
+
+		QueueHelper.QUEUES[name].setGlobalConcurrency(1);
+
+		return QueueHelper.QUEUES[name];
 	}
 
 	/**
-	 * @param {string} queueName
-	 * @param {*} handler
-	 * @param {Partial<WorkerOptions>} [opts={}]
-	 * @returns {void}
+	 * Description placeholder
+	 * @date 3/6/2024 - 2:40:12 PM
+	 *
+	 * @static
+	 * @param {string} name
+	 * @param {Partial<QueueOptions>} opts
+	 * @returns {*}
 	 */
-	private static _addWorker(queueName: string, handler: any, opts: Partial<WorkerOptions> = {}): void {
+	static getQueue(name: string, opts?: Partial<QueueOptions>): Queue {
+		if (!QueueHelper.QUEUES[name]) return QueueHelper.addQueue(name, opts);
+
+		return QueueHelper.QUEUES[name];
+	}
+
+	/**
+	 * Description placeholder
+	 * @date 3/6/2024 - 10:13:49 AM
+	 *
+	 * @static
+	 * @param {string} queueName
+	 * @param {*} jobName
+	 * @param {*} data
+	 * @param {*} opts
+	 * @returns {*}
+	 */
+	static addJob(queueName: string, jobName: string, data?: IObject, opts: JobsOptions = {}) {
+		return QueueHelper.getQueue(queueName).add(jobName, data, {
+			removeOnComplete: true,
+			removeOnFail: true,
+			...opts,
+		});
+	}
+
+	/**
+	 * Description placeholder
+	 * @date 3/6/2024 - 2:46:54 PM
+	 *
+	 * @static
+	 * @param {string} queueName
+	 * @param {any} handler
+	 * @param {?*} [opts]
+	 * @returns {*}
+	 */
+	static checkWorkerRunning(queueName: string, handler: any, opts: Partial<WorkerOptions> = {}) {
+		if (QueueHelper.WORKERS[queueName]) {
+			return QueueHelper.WORKERS[queueName];
+		}
+
 		const worker = new Worker(queueName, (job: Job) => handler(job), {
 			removeOnFail: { count: 0 },
 			removeOnComplete: { count: 0 },
-			...(opts || {}),
+			...opts,
 			connection: Storage.getConfig(),
 		});
 
-		worker.on('progress', (job: Job) => MoleculerHelper.getLogger().info(`[Worker ${job.name}] progress...`));
-		worker.on('completed', (job: Job) => MoleculerHelper.getLogger().info(`[Worker ${job.name}] completed...`));
-		worker.on('failed', (job: Job) => MoleculerHelper.getLogger().error(`[Worker ${job?.name}] failed...`, job));
-		worker.on('error', (err: any) => MoleculerHelper.getLogger().error(`[Worker ${err.name}] error...`, err));
-
 		QueueHelper.WORKERS[queueName] = worker;
+
+		return worker;
 	}
 }

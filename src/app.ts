@@ -4,12 +4,12 @@ import { MoleculerHelper } from '@/helpers/moleculer.helper';
 import { S3Import } from '@/helpers/s3Import.helper';
 import { Storage } from '@/helpers/storage.helper';
 import moment from 'moment-timezone';
+import { initTableConnection } from 'table-sdk';
 
 export class App {
 	/**
 	 * Init dependencies
 	 *
-	 * @private
 	 * @returns {void}
 	 */
 	private static async _initDependencies(): Promise<void> {
@@ -19,21 +19,23 @@ export class App {
 		S3Import.init();
 
 		await Storage.init();
+		await initTableConnection({
+			username: CONFIG.DB_USER,
+			password: CONFIG.DB_PASSWORD,
+			port: CONFIG.DB_PORT,
+			host: CONFIG.DB_HOST,
+		});
 	}
 
 	/**
-	 * Init core broker
+	 * Init table broker
 	 *
-	 * @async
-	 * @returns {Promise<IServiceBroker>}
+	 * @returns {Promise<void>}
 	 */
 	static async init(): Promise<void> {
 		MoleculerHelper.init();
 
 		await this._initDependencies();
-
-		// await Connection.getConnection().sync();
-		// await BoardSyncHelper.initSchedule();
 
 		await MoleculerHelper.start();
 	}

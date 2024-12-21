@@ -1,31 +1,28 @@
 import { CONFIG } from '@/configs';
 import { MOLECULER_CONFIG } from '@/configs/moleculer';
+import { ORCHESTRATOR_V3 } from '@/constants/services';
 import { ApiGatewayController, BullGatewayController, makeServerAdapter } from '@/controllers/api.gateway';
+import { TableController } from '@/controllers/table.controller';
+import type { ILocals, IServiceBroker } from '@/interfaces/moleculer.interface';
 import type { IObject } from '@/types/_base.type';
-import type { ILocals } from '@/types/moleculer.type';
 import type { LoggerInstance } from 'moleculer';
 import { ServiceBroker } from 'moleculer';
 
 export class MoleculerHelper {
-	private static BROKER: ServiceBroker;
+	private static _broker: IServiceBroker; // !IMPORTANT: This is a singleton, do not create a new instance, and must PRIVATE
 
 	/**
-	 * Init core broker
-	 *
-	 * @static
-	 * @returns {IServiceBroker}
+	 * @return {IServiceBroker}
 	 */
 	static init(): void {
-		MoleculerHelper.BROKER = new ServiceBroker(MOLECULER_CONFIG);
+		MoleculerHelper._broker = new ServiceBroker(MOLECULER_CONFIG);
+		MoleculerHelper._broker.createService(TableController);
 
-		// MoleculerHelper.BROKER.createService(CoreController);
-
-		// dev
+		// For dev
 		if (CONFIG.NODE_ENV === 'development') {
-			MoleculerHelper.BROKER.createService(ApiGatewayController);
+			MoleculerHelper._broker.createService(ApiGatewayController);
 
-			const bullGateway = MoleculerHelper.BROKER.createService(BullGatewayController);
-			// eslint-disable-next-line @typescript-eslint/no-require-imports
+			const bullGateway = MoleculerHelper._broker.createService(BullGatewayController);
 			const express = require('express')();
 
 			express.use('/', bullGateway.express());
@@ -35,55 +32,18 @@ export class MoleculerHelper {
 	}
 
 	/**
-	 * @returns {Promise<void>}
+	 * @return {Promise<void>}
 	 */
 	static async start(): Promise<void> {
-		await MoleculerHelper.BROKER.start();
+		await MoleculerHelper._broker.start();
 	}
 
 	/**
-	 * @returns {Promise<void>}
+	 * @return {Promise<void>}
 	 */
 	static async stop(): Promise<void> {
-		await MoleculerHelper.BROKER.stop();
-		MoleculerHelper.BROKER = undefined as any;
-	}
-
-	/**
-	 * @returns {LoggerInstance}
-	 */
-	static getLogger(): LoggerInstance {
-		return MoleculerHelper.BROKER.logger;
-	}
-
-	/**
-	 * @param {string} actionName
-	 * @param {?*} [params]
-	 * @param {?*} [opts]
-	 * @returns {Promise<any>}
-	 */
-	static call(actionName: string, params?: any, opts?: any): Promise<any> {
-		return MoleculerHelper.BROKER.call(actionName, params, opts);
-	}
-
-	/**
-	 * @param {string} eventName
-	 * @param {?*} [params]
-	 * @param {?*} [opts]
-	 * @returns {Promise<any>}
-	 */
-	static emit(eventName: string, params: any, opts?: any): any {
-		return MoleculerHelper.BROKER.emit(eventName, params, opts);
-	}
-
-	/**
-	 * @param {string} broadcastName
-	 * @param {?*} [params]
-	 * @param {?*} [opts]
-	 * @returns {Promise<any>}
-	 */
-	static broadcast(broadcastName: string, params?: any, opts?: any): Promise<any> {
-		return MoleculerHelper.BROKER.broadcastLocal(broadcastName, params, opts);
+		await MoleculerHelper._broker.stop();
+		MoleculerHelper._broker = undefined as any;
 	}
 
 	/**
@@ -93,87 +53,84 @@ export class MoleculerHelper {
 	 * @return {void}
 	 */
 	static sendToQueue(channelName: string, payload: IObject, opts?: any) {
-		return MoleculerHelper.BROKER.sendToChannel(channelName, payload, opts);
+		return MoleculerHelper._broker.sendToChannel(channelName, payload, opts);
+	}
+
+	/**
+	 * @return {LoggerInstance}
+	 */
+	static getLogger(): LoggerInstance {
+		return MoleculerHelper._broker.logger;
+	}
+
+	/**
+	 * @param {string} actionName
+	 * @param {?*} [params]
+	 * @param {?*} [opts]
+	 * @returns {Promise<any>}
+	 */
+	static call(actionName: string, params?: any, opts?: any): Promise<any> {
+		return MoleculerHelper._broker.call(actionName, params, opts);
+	}
+
+	/**
+	 * @param {string} eventName
+	 * @param {?*} [params]
+	 * @param {?*} [opts]
+	 * @returns {Promise<any>}
+	 */
+	static emit(eventName: string, params: any, opts?: any): any {
+		return MoleculerHelper._broker.emit(eventName, params, opts);
 	}
 }
 
-export class MoleculerLocalHelper {
-	private locals: ILocals;
+export class MoleculerCaller {
+	private locals: Partial<ILocals>;
 
 	/**
-	 * Creates an instance of MoleculerLocalHelper.
-	 * @date 1/4/2024 - 1:31:20 PM
-	 *
 	 * @constructor
-	 * @param {ILocals} locals
+	 * @param {Partial<ILocals>} locals
 	 */
-	constructor(locals: ILocals) {
+	constructor(locals: Partial<ILocals>) {
 		this.locals = locals;
 	}
 
 	/**
-	 * Call service action
-	 *
 	 * @param {string} actionName
-	 * @param {Request} params
-	 * @param {any} opts
-	 * @returns {Promise<Response>}
+	 * @param {*} params
+	 * @returns {Promise<any>}
 	 */
-	async call<Request, Response = any>(actionName: string, params: Request, opts = {}): Promise<Response> {
-		return MoleculerHelper.call(
-			// params
-			actionName,
-			params,
-			{
-				meta: this.locals,
-				...opts,
+	call(actionName: string, params?: any): Promise<any> {
+		return MoleculerHelper.call(actionName, params, {
+			meta: {
+				workspaceID: this.locals.workspaceID,
+				userID: this.locals.userID,
 			},
-		);
+		});
 	}
 
 	/**
-	 * Emit service event
-	 *
 	 * @param {string} eventName
-	 * @param {Request} params
-	 * @param {{}} [opts={}]
-	 * @returns {Promise<Response>}
+	 * @param {*} params
+	 * @param {SERVICE_NAME[]} [groups]
+	 * @returns {Promise<any>}
 	 */
-	emit<Request>(eventName: string, params: Request, opts = {}): Promise<void> {
-		return MoleculerHelper.emit(
-			// params
-			eventName,
-			params,
-			{
-				meta: this.locals,
-				...opts,
-			},
-		);
+	emit(eventName: string, params: any, groups: string[] = []): any {
+		return MoleculerHelper.emit(eventName, params, {
+			meta: { workspaceID: this.locals.workspaceID },
+			groups: [...groups, ORCHESTRATOR_V3],
+		});
 	}
 
 	/**
-	 * Send queue channel
-	 *
-	 * @param {string} channelName
-	 * @param {Request} payload
-	 * @param {any} opts
-	 * @returns {void}
+	 * @param {string} broadcastName
+	 * @param {*} params
+	 * @returns {Promise<any>}
 	 */
-	sendToQueue<Request>(channelName: string, payload?: Request, opts = {}): void {
-		// when send channel, data will recorded with increased level
-		const meta = {
-			...this.locals,
-			...(this.locals.requestLvl ? { requestLvl: this.locals.requestLvl + 1 } : {}),
-		};
-
-		return MoleculerHelper.sendToQueue(
-			// params
-			channelName,
-			payload || {},
-			{
-				ctx: { meta },
-				...opts,
-			},
-		);
+	broadcast(broadcastName: string, params: any = {}): any {
+		return MoleculerHelper.emit(broadcastName, params, {
+			meta: { workspaceID: this.locals.workspaceID },
+			groups: [ORCHESTRATOR_V3],
+		});
 	}
 }

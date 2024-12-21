@@ -1,8 +1,7 @@
 import { CONFIG } from '@/configs';
-import type { IObject } from '@/types/_base.type';
-import { assign } from 'lodash';
-import type { RedisClientType, SetOptions } from 'redis';
-import { createClient } from 'redis';
+import { IObject } from '@/types/_base.type';
+import _ from 'lodash';
+import { RedisClientType, SetOptions, createClient } from 'redis';
 import { MoleculerHelper } from './moleculer.helper';
 
 export type RedisMultiType = ReturnType<RedisClientType['multi']>;
@@ -66,7 +65,7 @@ export class Storage {
 	 */
 	public static async setCacheValueByKey(cacheKey: string, cacheValue: IObject | IObject[], options: SetOptions = {}): Promise<string | null> {
 		if (!('EX' in options)) {
-			assign(options, { KEEPTTL: true });
+			_.assign(options, { KEEPTTL: true });
 		}
 
 		const data = (await Storage.getStorageClient()).set(cacheKey, JSON.stringify(cacheValue), options);

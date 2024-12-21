@@ -1,7 +1,8 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
 import * as customFormula from '@/utils/custom-formula';
 import * as formulajs from '@formulajs/formulajs';
-import type { Context, Isolate, IsolateOptions } from 'isolated-vm';
-import ivm from 'isolated-vm';
+import ivm, { Context, Isolate, IsolateOptions } from 'isolated-vm';
 import _ from 'lodash';
 
 export type IVM = { context: ivm.Context; global: ivm.Reference<Record<string | number | symbol, any>> };
@@ -18,9 +19,11 @@ export class IVMHelper {
 	private static vm: Isolate;
 
 	/**
+	 * @public
+	 * @static
 	 * @returns {Isolate}
 	 */
-	static initVM(): ivm.Isolate {
+	public static initVM(): ivm.Isolate {
 		if (!IVMHelper.vm || IVMHelper.vm.isDisposed) {
 			IVMHelper.vm = new ivm.Isolate(IVMHelper.vmOptions);
 		}
@@ -29,9 +32,13 @@ export class IVMHelper {
 	}
 
 	/**
+	 * Description placeholder
+	 *
+	 * @public
+	 * @static
 	 * @returns {IVM}
 	 */
-	static createIsolate(): IVM {
+	public static createIsolate(): IVM {
 		const isolateContext = IVMHelper.initVM().createContextSync();
 		const jail = isolateContext.global;
 
@@ -49,12 +56,14 @@ export class IVMHelper {
 	}
 
 	/**
+	 * @public
+	 * @static
 	 * @param {string} formula
 	 * @param {IVM} ivm
 	 * @param {extraFunction} extraFunction
 	 * @returns {void}
 	 */
-	static runIsolate(formula: string, ivm: IVM, extraFunction?: string[]): void {
+	public static runIsolate(formula: string, ivm: IVM, extraFunction?: string[]): any {
 		const { context, global } = ivm;
 		// Set extra function needed before run
 		_.forEach(extraFunction, fnName => {
@@ -68,11 +77,13 @@ export class IVMHelper {
 		return context.evalSync(formula, { timeout: 500, copy: true });
 	}
 
-	/**x
+	/**
+	 * @public
+	 * @static
 	 * @param {Context} context
-	 * @returns {void}
+	 * @returns {Context}
 	 */
-	static releaseIsolate(context: Context): void {
+	public static releaseIsolate(context: Context): void {
 		return context.release();
 	}
 }

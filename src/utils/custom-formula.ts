@@ -1,8 +1,7 @@
 import { REGEX } from '@/constants/regex';
-import type { IObject } from '@/types/_base.type';
+import { IObject } from '@/types/_base.type';
 import _ from 'lodash';
-import type { DurationInputArg2, Moment } from 'moment-timezone';
-import moment from 'moment-timezone';
+import moment, { DurationInputArg2, Moment } from 'moment-timezone';
 
 export const CONVERTMONTH = function (days: number) {
 	if (!_.isNumber(days)) throw new TypeError('Input invalid');

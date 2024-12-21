@@ -1,14 +1,17 @@
 {
-	"version": "0.2.0",
+	"version": "3.0.0",
 	"configurations": [
 		{
-			"type": "bun",
+			"type": "node-terminal",
 			"request": "launch",
-			"name": "Start Cubable Debugger",
-			"program": "src/servvrrrr.ts",
-			"runtime": "bun",
-			"watchMode": true,
+			"name": "Start Cubarun stble V3 Debugger",
+			"command": "npm run start"
 		},
+		{
+			"type": "node-terminal",
+			"request": "launch",
+			"name": "Migrate Cubable V3 Debugger",
+			"command": "npm run migrate:ts"
+		}
 	]
 }
-	

@@ -1,10 +1,12 @@
 import { CONFIG } from '@/configs';
+import { TABLE_NODE_NAME } from '@/constants/resources';
 import { Middleware } from '@moleculer/channels';
-import {isEmpty} from 'lodash';
+import _ from 'lodash';
 import type { BrokerOptions } from 'moleculer';
 import { ZodValidator } from 'moleculer-zod-validator';
 import moment from 'moment-timezone';
 import os from 'os';
+
 import winston from 'winston';
 
 const format = winston.format;
@@ -12,11 +14,18 @@ const { combine, timestamp, printf } = format;
 
 const myFormat = printf((data: any) => {
 	const level: string = data.level.toUpperCase();
+	const pattern = `${data.timestamp} ${level}: `;
 
-	let message = `${data.timestamp} ${level}: ${data.message}`;
+	let message = `${pattern}${data?.message}`;
 
 	if (level === 'ERROR') {
-		message = `${message}${!isEmpty(data?.stack) ? `\nStack: ${JSON.stringify(data.stack)}` : ''}`;
+		if (!_.isEmpty(data?.data)) {
+			message += `\n${pattern}Data error - ${JSON.stringify(data.data)}`;
+		}
+
+		if (!_.isEmpty(data?.stack)) {
+			message += `\n${pattern}Stack error - ${JSON.stringify(data.stack)}`;
+		}
 	}
 
 	return message;
@@ -30,11 +39,12 @@ const MQ_2_PORT = CONFIG.MQ_2_PORT || CONFIG.MQ_PORT;
 
 export const MOLECULER_CONFIG: BrokerOptions = {
 	namespace: CONFIG.NAMESPACE,
-	nodeID: `${CONFIG.NODE_NAME}-${os.hostname().toLowerCase()}-${moment().format('YYYY/MM/DD-HH:mm:ss')}`,
+	nodeID: `${TABLE_NODE_NAME}-${os.hostname().toLowerCase()}-${moment().format('YYYY/MM/DD-HH:mm:ss')}`,
 	transporter: {
 		type: 'AMQP',
 		options: {
 			url: `${CONFIG.MQ_PROTOCOL}://${CONFIG.MQ_USER}:${CONFIG.MQ_PASSWORD}@${CONFIG.MQ_HOST}:${CONFIG.MQ_PORT}`,
+			prefetch: 50,
 		},
 	},
 	tracing: {
@@ -65,19 +75,24 @@ export const MOLECULER_CONFIG: BrokerOptions = {
 			},
 		},
 	},
-  validator: new ZodValidator(),
+
 	registry: {
 		strategy: 'CpuUsage',
 	},
+
 	serializer: 'ProtoBuf',
+	circuitBreaker: { enabled: true },
 	skipProcessEventRegistration: true,
-	circuitBreaker: {
-		enabled: true,
-		threshold: 0.5,
-		minRequestCount: 20,
-		windowTime: 60, // in seconds
-		halfOpenTime: 5 * 1000, // in milliseconds
-		check: err => err && (err as any).code >= 500,
+
+	requestTimeout: 30000,
+
+	validator: new ZodValidator(),
+	errorHandler(err: any, info: any) {
+		if (info?.service?.metadata['$category'] !== 'gateway') {
+			this.logger.error(err);
+		}
+
+		throw err;
 	},
 
 	middlewares: [
@@ -108,10 +123,10 @@ export const MOLECULER_CONFIG: BrokerOptions = {
 							exchangeOptions: {},
 						},
 					},
-					maxInFlight: 1,
-					maxRetries: 1,
+					maxInFlight: 3,
+					maxRetries: 0,
 				},
 			},
 		}),
 	],
-});
+};

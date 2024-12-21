@@ -27,6 +27,6 @@
 			"@/*": ["*"]
 		}
 	},
-	"include": ["src/**/*.ts", "src/table-connection.ts", "src/field-datatype.ts", "index.ts",],
-	"exclude": ["node_modules"]
+	"include": ["src/**/*.ts", "src/**/*.json", ".env", "src/bin/migrate.ts", "src/migrations/*.ts", "src/seeders/*.ts"],
+	"exclude": ["node_modules", "src/http", "src/logs", "src/tests", "src/migrations/_bk", "src/seeders/_bk"]
 }

@@ -135,4 +135,6 @@ dist
 # migration
 umzug.json
 
-.vscode/
+bun.lockb
+yarn.lock
+package-lock.json

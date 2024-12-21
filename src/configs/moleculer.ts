@@ -75,7 +75,6 @@ export const MOLECULER_CONFIG: BrokerOptions = {
 			},
 		},
 	},
-
 	registry: {
 		strategy: 'CpuUsage',
 	},

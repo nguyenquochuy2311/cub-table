@@ -29,7 +29,6 @@ process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 			return gracefulShutdown(event, 1, error);
 		}
 
-		switch (true) {
 			case error?.name === 'TypeError': {
 				MoleculerHelper.getLogger().error(error);
 				break;
@@ -38,5 +37,3 @@ process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 				return gracefulShutdown(event, 1, error);
 			}
 		}
-	}),
-);

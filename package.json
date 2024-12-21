@@ -3,6 +3,7 @@
 	"version": "3.0.0",
 	"description": "cubable table",
 	"license": "ISC",
+	"type": "module",
 	"scripts": {
 		"serve": "npm run build && node dist/server.js",
 		"start": "nodemon --signal SIGTERM",

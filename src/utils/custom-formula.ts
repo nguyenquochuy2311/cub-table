@@ -264,6 +264,7 @@ export const MOMENT = function (date: Date, dateFormat: string, momentValue: Mom
 
 		if (!m.isValid()) m = moment(date);
 
+		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
 		setTimezone && m.isValid() && m.tz(this.timezone);
 	}
 

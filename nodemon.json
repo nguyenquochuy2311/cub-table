@@ -3,5 +3,4 @@
 	"ext": "js,ts,json",
 	"ignore": ["src/logs/*", "src/migrate.ts", "src/migrations/*", "src/seeders/*", "src/**/*.{spec,test}.ts"],
 	"exec": "node -r @swc-node/register src/server.ts",
-	"_exec": "ts-node -r tsconfig-paths/register src/server.ts"
 }

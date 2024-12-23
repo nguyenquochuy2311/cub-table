@@ -1,4 +1,4 @@
-import { Storage } from '@/helpers/storage.helper';
+import { StorageHelper } from '@/helpers/storage.helper';
 import { CacheUtil } from '@/utils/cache.util';
 import { isEmpty, pick } from 'lodash';
 import { BulkCreateOptions, CreateOptions, DestroyOptions, FindOptions, Identifier, UpdateOptions, UpsertOptions, WhereOptions } from 'sequelize';
@@ -44,7 +44,7 @@ export abstract class RepositoryCache<I> extends Repository<I> {
 	 * @returns {Promise<void>}
 	 */
 	private async _setCache(generateKey: string, data: I[] | I | null): Promise<void> {
-		await Storage.setCacheValueByKey(await this._parseKey(generateKey), data || {}, { EX: 60 });
+		await StorageHelper.setCacheValueByKey(await this._parseKey(generateKey), data || {}, { EX: 60 });
 	}
 
 	/**
@@ -53,7 +53,7 @@ export abstract class RepositoryCache<I> extends Repository<I> {
 	 * @returns {Promise<I[]|I|{}>}
 	 */
 	private async _getCache(generateKey: string): Promise<I[] | I | {}> {
-		return Storage.getCacheValueByKey(await this._parseKey(generateKey));
+		return StorageHelper.getCacheValueByKey(await this._parseKey(generateKey));
 	}
 
 	/**
@@ -61,10 +61,10 @@ export abstract class RepositoryCache<I> extends Repository<I> {
 	 * @returns {Promise<void>}
 	 */
 	protected async _delCache(): Promise<void> {
-		const keyScans = await Storage.scanCacheKeys('*');
+		const keyScans = await StorageHelper.scanCacheKeys('*');
 		if (!keyScans?.length) return;
 
-		await Promise.all(keyScans.map((key: string) => Storage.destroyCacheByKey(key)));
+		await Promise.all(keyScans.map((key: string) => StorageHelper.destroyCacheByKey(key)));
 	}
 
 	/**

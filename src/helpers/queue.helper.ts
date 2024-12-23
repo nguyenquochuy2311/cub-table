@@ -1,7 +1,7 @@
 import { IObject } from '@/types/_base.type';
 import { Job, JobsOptions, Queue, QueueOptions, Worker, WorkerOptions } from 'bullmq';
 import _ from 'lodash';
-import { Storage } from './storage.helper';
+import { StorageHelper } from './storage.helper';
 
 export class QueueHelper {
 	static QUEUES: Record<string, Queue> = {};
@@ -33,7 +33,7 @@ export class QueueHelper {
 
 		const mergedOptions = _.merge({}, queueOptions, opts);
 
-		QueueHelper.QUEUES[name] = new Queue(name, { ...mergedOptions, connection: Storage.getConfig() });
+		QueueHelper.QUEUES[name] = new Queue(name, { ...mergedOptions, connection: StorageHelper.getConfig() });
 
 		QueueHelper.QUEUES[name].setGlobalConcurrency(1);
 
@@ -93,7 +93,7 @@ export class QueueHelper {
 			removeOnFail: { count: 0 },
 			removeOnComplete: { count: 0 },
 			...opts,
-			connection: Storage.getConfig(),
+			connection: StorageHelper.getConfig(),
 		});
 
 		QueueHelper.WORKERS[queueName] = worker;
